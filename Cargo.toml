@@ -1,0 +1,10 @@
+[package]
+name = "csv-pvoutput"
+version = "0.1.0"
+authors = ["Toon Willems <willemstoon@gmail.com>"]
+
+[dependencies]
+pvoutput = {path = "../pvoutput"}
+csv = "0.14.x"
+rustc-serialize = "0.3.22"
+chrono = "0.2.25"
