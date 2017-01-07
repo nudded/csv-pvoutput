@@ -10,10 +10,24 @@ use ini::Ini;
 use parsing::*;
 use pvoutput::*;
 
-impl<'a> From<PvOutputRecord> for Status<'a> {
+impl From<PvOutputRecordParsed> for Status {
 
-    fn from(rec: PvOutputRecord) -> Status<'a> {
-        Status::simple_for_v1("test","test","test")
+    fn from(rec: PvOutputRecordParsed) -> Status {
+        let arg1 = format!("{}", rec.datetime.format("%Y%m%d"));
+        let arg2 = format!("{}", rec.datetime.format("%H:%M"));
+        let arg3 = format!("{}", (rec.current_status * 1000.0).floor());
+        Status::simple_for_v2(
+            arg1,
+            arg2,
+            arg3)
+    }
+}
+
+impl From<PvOutputRecord> for Status {
+
+    fn from(rec: PvOutputRecord) -> Status {
+        let parsed_rec: PvOutputRecordParsed = rec.into();
+        parsed_rec.into()
     }
 }
 
@@ -34,6 +48,7 @@ fn main() {
     for record in rdr.decode() {
         let record: PvOutputRecord = record.unwrap();
         let status: Status = record.into();
+        println!("{:?}", status);
 
     }
 

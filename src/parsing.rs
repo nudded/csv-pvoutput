@@ -21,11 +21,36 @@ impl fmt::Display for MyDateTime {
     }
 }
 
-#[derive(RustcDecodable)]
+impl From<MyDateTime> for DateTime<Local> {
+    fn from(dt: MyDateTime) -> DateTime<Local> {
+        dt.0
+    }
+}
+
+#[derive(RustcDecodable, Debug)]
 pub struct PvOutputRecord {
     pub datetime: MyDateTime,
     pub cumulative: FloatWithPoint,
     pub current_status: FloatWithPoint,
+}
+
+#[derive(Debug)]
+pub struct PvOutputRecordParsed {
+    pub datetime: DateTime<Local>,
+    pub cumulative: f64,
+    pub current_status: f64,
+}
+
+impl From<PvOutputRecord> for PvOutputRecordParsed {
+
+    fn from(rec: PvOutputRecord) -> PvOutputRecordParsed {
+        PvOutputRecordParsed {
+            datetime: rec.datetime.0,
+            cumulative: rec.cumulative.0,
+            current_status: rec.current_status.0,
+        }
+    }
+
 }
 
 impl Decodable for FloatWithPoint {
