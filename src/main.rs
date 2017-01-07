@@ -3,12 +3,16 @@ extern crate ini;
 extern crate csv;
 extern crate rustc_serialize;
 extern crate chrono;
+extern crate clap;
 
 mod parsing;
 
 use ini::Ini;
 use parsing::*;
 use pvoutput::*;
+use std::path::Path;
+
+use clap::App;
 
 impl From<PvOutputRecordParsed> for Status {
 
@@ -31,25 +35,40 @@ impl From<PvOutputRecord> for Status {
     }
 }
 
-fn main() {
-    let ini_config = Ini::load_from_file("pvoutput.ini").unwrap();
-    let api_key = ini_config.get_from(Some("api"), "api_key").unwrap();
-    let system_id = ini_config.get_from(Some("api"), "system_id").unwrap();
-    let file_dir = ini_config.get_from(Some("api"), "file_dir").unwrap();
+fn do_import<'a>(file: &Path, pvoutput: &'a PvOutput, test_run: bool) {
 
-    println!("api_key: {}, system_id: {}, file_dir: {}", api_key, system_id, file_dir);
-    println!("api_key: {}, system_id: {}", api_key, system_id);
-
-    let pvoutput = PvOutput::new(api_key, system_id);
-
-    let mut rdr = csv::Reader::from_file("/vagrant/Downloads/Archief/2100323955/test.csv").
-        unwrap().
-        delimiter(b';');
+    let mut rdr = csv::Reader::from_file(file).unwrap().delimiter(b';');
     for record in rdr.decode() {
         let record: PvOutputRecord = record.unwrap();
         let status: Status = record.into();
-        println!("{:?}", status);
-
+        if test_run {
+            println!("{:?}", status)
+        } else {
+            println!("{:?}", pvoutput.send_request(status));
+        }
     }
 
+}
+
+fn create_pv_output_from_ini<'a>(ini_config: &'a Ini) -> PvOutput<'a> {
+    let api_key = ini_config.get_from(Some("api"), "api_key").unwrap();
+    let system_id = ini_config.get_from(Some("api"), "system_id").unwrap();
+    PvOutput::new(api_key, system_id)
+}
+
+fn main() {
+    let ini_config = Ini::load_from_file(Path::new("pvoutput.ini")).unwrap();
+    let pvoutput = create_pv_output_from_ini(&ini_config);
+    let matches = App::new("csv-pvoutput")
+                    .version("1.0")
+                    .author("Toon Willems")
+                    .about("upload csv status data to pvoutput.org")
+                    .args_from_usage(
+                        "-f, --file=[FILE]  'file to import'
+                        -p, --path=[FILE]   'path to import all files from'
+                        -d, --dry-run       'do not actually send'")
+                    .get_matches();
+    let test_run = matches.is_present("dry-run");
+    let file = Path::new(matches.value_of("file").unwrap());
+    do_import(file, &pvoutput, test_run);
 }
