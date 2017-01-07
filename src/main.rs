@@ -13,7 +13,7 @@ use pvoutput::*;
 impl<'a> From<PvOutputRecord> for Status<'a> {
 
     fn from(rec: PvOutputRecord) -> Status<'a> {
-        Status::simple_for_v1(rec.)
+        Status::simple_for_v1("test","test","test")
     }
 }
 
@@ -24,6 +24,7 @@ fn main() {
     let file_dir = ini_config.get_from(Some("api"), "file_dir").unwrap();
 
     println!("api_key: {}, system_id: {}, file_dir: {}", api_key, system_id, file_dir);
+    println!("api_key: {}, system_id: {}", api_key, system_id);
 
     let pvoutput = PvOutput::new(api_key, system_id);
 
