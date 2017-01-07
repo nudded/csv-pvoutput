@@ -24,8 +24,8 @@ impl fmt::Display for MyDateTime {
 #[derive(RustcDecodable)]
 pub struct PvOutputRecord {
     pub datetime: MyDateTime,
-    pub value: FloatWithPoint,
-    pub othervalue: FloatWithPoint,
+    pub cumulative: FloatWithPoint,
+    pub current_status: FloatWithPoint,
 }
 
 impl Decodable for FloatWithPoint {
